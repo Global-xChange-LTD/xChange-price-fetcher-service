@@ -1,1 +1,1 @@
-# xChange-price-fetcher-service
+# price-fetching-service
