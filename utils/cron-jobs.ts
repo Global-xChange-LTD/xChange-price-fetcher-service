@@ -5,11 +5,13 @@ import Logger from "./logger";
 
 export const updateCoinsData = () => {
     //At every 30 seconds.
-   /* new CronJob('*!/30 * * * * *', async () =>{
+/*
+    new CronJob('*!/30 * * * * *', async () =>{
        await updateCurrencyMarketData()
            .catch(err => Logger.error(`Failed to udpate currency market data: ${err}`));
     }).start();
 */
+
     //At every 40th minute.
     new CronJob('*/40 * * * *', async () =>{
         await updateChartHistory(1)
