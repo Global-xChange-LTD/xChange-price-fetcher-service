@@ -1,3 +1,6 @@
+# Start the service
+-  npm run start:dev
+
 # xChange-price-fetching-service
 
 This is a backend service responsible for fetching data from CoinGecko and providing it to the Apps.
