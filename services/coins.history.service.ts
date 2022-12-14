@@ -15,6 +15,8 @@ export async function updateChartHistory(days:number){
                 let url = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=${days}&vs_currency=usd`,
                     prices: any = [];
 
+                url.replace('%27,', '');
+
                 await coingeckoService.getCoingeckoData(url).then((response)=> {
                     if(response && response.length > 0){
                         prices = response.prices;
@@ -44,29 +46,41 @@ export async function updateChartHistory(days:number){
 }
 
 export async function updateCoinHistoryData(coinId: string, prices: any, keyForUpdate: string) {
-    return await CurrencyHistory.findOneAndUpdate({id: coinId}, {[keyForUpdate]: prices}, {
+    let update = {};
+    switch (keyForUpdate) {
+        case 'dayHistoryData':
+            update = {dayHistoryData: prices};
+            break;
+        case 'weekHistoryData':
+            update = {weekHistoryData: prices};
+            break;
+        case 'monthHistoryData':
+            update = {monthHistoryData: prices};
+            break;
+        case 'yearHistoryData':
+            update = {yearHistoryData: prices};
+            break;
+    }
+
+    return await CurrencyHistory.findOneAndUpdate({id: coinId}, update, {
         new: true,
         upsert: true
     }).catch((err: any) => {
-        Logger.warn(`CurrencyHistory findOneAndUpdate: ${err}`)
+        throw new Error(err);
     });
 }
 
 export async function getCoingeckoCoinsIdsFromDB() {
     let tempArray: Array<string> = [];
+
     try {
-         await CurrencyHistory.find({}).then((resp: [ICurrencyHistory])=> {
-             for (const coin of resp) {
-                 tempArray.push(coin.id);
-             }
-        })
+        tempArray = await CurrencyHistory.distinct("id");
     } catch (err: any) {
-       throw new Error(err)
+        throw new Error(err)
     }
 
-   return tempArray;
+    return tempArray;
 }
-
 
 export async function addNewCurrencyHistoryCoin(coin: string, currency: any): Promise<ICurrencyHistory>{
     try{
@@ -95,7 +109,6 @@ export async function addNewCurrencyHistoryCoin(coin: string, currency: any): Pr
         Logger.error('Fail database initial update');
         throw new Error(err);
     }
-
 }
 
 export async function makeCoingeckoRequest(url: string): Promise<any> {
@@ -107,9 +120,6 @@ export async function makeCoingeckoRequest(url: string): Promise<any> {
                 if(data) {
                     pricesArray = data.prices
                 }})
-            .catch((error)=> {
-              throw new Error(error)
-            })
     } catch (err: any) {
         new HttpException(400, err)
     }

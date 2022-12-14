@@ -32,31 +32,23 @@ export async function getCoinHystoryData(
         }
 
         if(coinExists){
-            // @ts-ignore
             await getCoinHistoryDataBasedOnDays(coinId, days.toString())
                 .then((resp)=> {
                     return res.status(200).json(resp);
-                })
-                .catch(err => {
-                    throw new Error(err);
                 });
         } else {
             let newRecord = await addNewCurrencyHistoryCoin(coinId, vs_currency)
                 .catch(err => {
                     throw new Error(err);
-                })
+                });
 
             await getCoinHistoryDataBasedOnDays(newRecord.id, days.toString())
                 .then((resp)=>{
                     return res.status(200).json(resp);
-                })
-                .catch(err => {
-                    throw new Error(err);
                 });
         }
-
     } catch (err: any) {
-        next(err);
+        next(new HttpException(500, err));
     }
 }
 

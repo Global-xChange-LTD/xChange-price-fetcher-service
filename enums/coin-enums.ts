@@ -3,6 +3,15 @@ export const FiatExchanges: { [key: string]: string } = {
     EUR: 'eur'
 };
 
+export async function getFiatExchanges(){
+    let fiatArr: string[] = []
+    Object.values(FiatExchanges).forEach((item)=> {
+        fiatArr.push(item);
+    });
+
+    return fiatArr;
+}
+
 export const CoinsCode: { [key: string]: string } = {
     BTC: 'bitcoin',
     ETH: 'ethereum',

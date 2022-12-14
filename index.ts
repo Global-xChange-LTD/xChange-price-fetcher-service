@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from "path";
 import dotenv from 'dotenv';
 dotenv.config();
+
 import router from "./routes/router";
 import { connectToDatabases } from "./connections/database";
 import { PORT } from "./config/config";

@@ -13,6 +13,7 @@ export interface ICurrencyMarket extends Document  {
     market_cap_change_percentage_24h: string,
     total_volume: string,
     circulating_supply: string,
+    exchange_rate: string
 }
 
 export const currencyMarketSchema = new Schema ({
@@ -56,6 +57,10 @@ export const currencyMarketSchema = new Schema ({
     circulating_supply: {
         type: String,
         float: true
+    },
+    exchange_rate: {
+        type: String,
+        required: true
     }
 }, {
     timestamps: true,

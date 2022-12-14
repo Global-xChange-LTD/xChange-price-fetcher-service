@@ -1,25 +1,22 @@
 import axios from "axios";
 import CurrencyMarket from "../models/currencyMarket";
 import Logger from "../utils/logger";
+import { COINGECKO_API_URL } from "../config/config";
+import { getFiatExchanges } from "../enums/coin-enums";
 
 export async function getMarketCoinGeckosIds() {
-    let coins: any,
-        tempArray: Array<string> = [];
+    let coins: any;
 
     try {
-        coins = await CurrencyMarket.find({})
+        coins = await CurrencyMarket.distinct("id")
         if (coins == null) {
-            Logger.error(`Coins are empty`);
+            Logger.info('Coins are empty');
             return;
         }
 
-        for (const coin of coins) {
-            tempArray.push(coin.id)
-        }
+        return coins;
 
-        return tempArray;
     } catch (err: any) {
-        Logger.error(`${err}`);
         throw new Error(err)
     }
 }
@@ -29,36 +26,48 @@ export async function addNewCurrencyMarketCoin(item: any) {
         id: item.id,
         name: item.name,
         symbol: item.symbol,
-        current_price: item.current_price.toString(),
-        market_cap: item.market_cap.toString(),
-        price_change_percentage_24h: item.price_change_percentage_24h.toString(),
-        market_cap_change_24h: item.market_cap_change_24h.toString(),
-        market_cap_change_percentage_24h: item.market_cap_change_percentage_24h.toString(),
-        total_volume: item.total_volume.toString(),
-        circulating_supply: item.circulating_supply.toString(),
+        current_price:  item.current_price,
+        market_cap: item.market_cap,
+        price_change_percentage_24h: item.price_change_percentage_24h,
+        market_cap_change_24h: item.market_cap_change_24h,
+        market_cap_change_percentage_24h: item.market_cap_change_percentage_24h,
+        total_volume: item.total_volume,
+        circulating_supply: item.circulating_supply,
+        exchange_rate: item.exchange_rate
     });
 
     await marketCoin.save()
         .then(()=> {
-            Logger.info(`${marketCoin.id} addded to CurrencyMarket collection`);
+            Logger.info(`New Coin addded to CurrencyMarket collection ${ marketCoin.id} ${marketCoin.exchange_rate}` );
         })
         .catch((err: any) => {
             throw new Error(err)
         });
 }
 
-export async function requestMarketsCoingeckoData(url: string): Promise<any> {
-    let response: any[] = [];
-    try {
-        await axios.get(url)
-            .then((res)=> {
-                if(res.data){
-                    response = res.data;
-                }
-            });
-    } catch (err: any) {
-        Logger.error(`Try axios GET ${url} error: ${err}`);
-        throw new Error(err);
+export async function requestMarketsCoingeckoData(coins: any): Promise<any> {
+    let response: any[] = [],
+        fiatExchangeRates = await getFiatExchanges();
+
+    for (const exchange_rate of fiatExchangeRates) {
+        let url = `${COINGECKO_API_URL}coins/markets?ids=${coins.join('%2C')}&vs_currency=${exchange_rate}`;
+
+        //Replace is done because sometimes " ` " is replaced with encoding %27,
+        let encodedURL = url.replace('%27,', '');
+
+        try {
+            await axios.get(url)
+                .then((res)=> {
+                    if(res.data) {
+                        res.data.forEach((item: any) => {
+                            item.exchange_rate = exchange_rate;
+                            response.push(item);
+                        });
+                    }
+                });
+        } catch (err) {
+            throw new Error(`${new Date().getTime()} : ${url}} error: ${err}`);
+        }
     }
 
     return response;
@@ -68,48 +77,37 @@ export async function updateCurrencyMarketData(){
     let coins = await getMarketCoinGeckosIds();
 
     if(coins && coins.length > 0) {
-        let url = `${process.env.COINGECKO_API_URL}coins/markets?ids=${coins.join('%2C')}&vs_currency=usd`,
-            data = await requestMarketsCoingeckoData(url);
+        try {
+            let data = await requestMarketsCoingeckoData(coins);
 
-        for (const item of data) {
-            let record = {
-                id: item.id,
-                name: item.name,
-                symbol: item.symbol,
-                current_price: item.current_price.toString(),
-                market_cap: item.market_cap.toString(),
-                price_change_percentage_24h: item.price_change_percentage_24h.toString(),
-                market_cap_change_24h: item.market_cap_change_24h.toString(),
-                market_cap_change_percentage_24h: item.market_cap_change_percentage_24h.toString(),
-                total_volume: item.total_volume.toString(),
-                circulating_supply: item.circulating_supply.toString()
+            if(data && data.length > 0) {
+                for (const item of data) {
+                    let record = {
+                        id: item.id,
+                        name: item.name,
+                        symbol: item.symbol,
+                        current_price:  item.current_price,
+                        market_cap: item.market_cap,
+                        price_change_percentage_24h: item.price_change_percentage_24h,
+                        market_cap_change_24h: item.market_cap_change_24h,
+                        market_cap_change_percentage_24h: item.market_cap_change_percentage_24h,
+                        total_volume: item.total_volume,
+                        circulating_supply: item.circulating_supply,
+                        exchange_rate: item.exchange_rate
+                    };
+
+                    await CurrencyMarket.findOneAndUpdate({id: record.id, exchange_rate: record.exchange_rate}, record, {
+                        new: true,
+                        upsert: true
+                    }).catch((err: any) => {
+                        Logger.error(`CurrencyMarket findOneAndUpdate: ${ err}`);
+                        throw  Error(err);
+                    });
+                }
             }
-
-            await CurrencyMarket.findOneAndUpdate({id: record.id}, record, {
-                new: true,
-                upsert: true
-            }).catch((err: any) => {
-                Logger.error(`${err}`);
-                throw new Error(err);
-            });
+        } catch (err: any) {
+            throw new Error(err);
         }
     }
-}
-
-export async function getExchangeRate(currency: any): Promise<number> {
-    let url = `${process.env.EXCHANGE_RATE_API}&?base=usd&symbols=${currency}}`,
-    returnValue: number = 1;
-    await axios.get(url)
-        .then((response)=> {
-            if(response && response.data) {
-                returnValue = response.data.rates[currency]
-            }
-        })
-        .catch((err)=> {
-            Logger.error(`Try axios GET ${url} error: ${err}`);
-            throw new Error(err);
-        })
-
-    return returnValue
 }
 
