@@ -5,7 +5,7 @@ import { updateCoinsData } from "../utils/cron-jobs";
 import { checkMarketAndHistoryDatabase } from "../services/database";
 
 export async function connectToDatabases() {
-    mongoose.connect((DATABASE_URL || 'mongodb://localhost/xchange_price_fetcher')!, {
+    mongoose.connect((DATABASE_URL)!, {
         dbName: DATABASE_NAME || 'xchange_price_fetcher'
     })
         .then((res) => {
