@@ -30,37 +30,38 @@ export const currencyMarketSchema = new Schema ({
         required: true
     },
     current_price: {
-        type: String,
+        type: Number,
         required: true,
         float: true
     },
     market_cap: {
-        type: String,
+        type: Number,
         float: true
     },
     price_change_percentage_24h: {
-        type: String,
+        type: Number,
         float: true
     },
     market_cap_change_24h: {
-        type: String,
+        type: Number,
         float: true
     },
     market_cap_change_percentage_24h: {
-        type: String,
+        type: Number,
         float: true
     },
     total_volume: {
-        type: String,
+        type: Number,
         float: true
     },
     circulating_supply: {
-        type: String,
+        type: Number,
         float: true
     },
     exchange_rate: {
         type: String,
         required: true
+
     }
 }, {
     timestamps: true,
