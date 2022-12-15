@@ -1,15 +1,15 @@
 import axios from 'axios';
 import CurrencyHistory, { ICurrencyHistory } from "../models/currencyHistory";
 import { CoingeckoService } from "./coingecko.service";
-import {COINGECKO_API_URL} from "../config/config";
+import { COINGECKO_API_URL } from "../config/config";
 import HttpException from "../classes/HttpException";
 import Logger from "../utils/logger";
 const coingeckoService = new CoingeckoService();
 
-export async function updateChartHistory(days:number){
+export async function updateChartHistory(days: number) {
     const coins = await getCoingeckoCoinsIdsFromDB();
 
-    if(coins) {
+    if (coins) {
         try {
             for (let coin of coins) {
                 let url = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=${days}&vs_currency=usd`,
@@ -17,12 +17,12 @@ export async function updateChartHistory(days:number){
 
                 url.replace('%27,', '');
 
-                await coingeckoService.getCoingeckoData(url).then((response)=> {
-                    if(response && response.length > 0){
+                await coingeckoService.getCoingeckoData(url).then((response) => {
+                    if (response && response.length > 0) {
                         prices = response.prices;
                     }
                 });
-                if(prices && prices.length > 0) {
+                if (prices && prices.length > 0) {
                     switch (days) {
                         case 1:
                             await updateCoinHistoryData(coin, prices, 'dayHistoryData');
@@ -49,20 +49,20 @@ export async function updateCoinHistoryData(coinId: string, prices: any, keyForU
     let update = {};
     switch (keyForUpdate) {
         case 'dayHistoryData':
-            update = {dayHistoryData: prices};
+            update = { dayHistoryData: prices };
             break;
         case 'weekHistoryData':
-            update = {weekHistoryData: prices};
+            update = { weekHistoryData: prices };
             break;
         case 'monthHistoryData':
-            update = {monthHistoryData: prices};
+            update = { monthHistoryData: prices };
             break;
         case 'yearHistoryData':
-            update = {yearHistoryData: prices};
+            update = { yearHistoryData: prices };
             break;
     }
 
-    return await CurrencyHistory.findOneAndUpdate({id: coinId}, update, {
+    return await CurrencyHistory.findOneAndUpdate({ id: coinId }, update, {
         new: true,
         upsert: true
     }).catch((err: any) => {
@@ -82,18 +82,18 @@ export async function getCoingeckoCoinsIdsFromDB() {
     return tempArray;
 }
 
-export async function addNewCurrencyHistoryCoin(coin: string, currency: any): Promise<ICurrencyHistory>{
-    try{
+export async function addNewCurrencyHistoryCoin(coin: string, currency: any): Promise<ICurrencyHistory> {
+    try {
         let url1 = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=1&vs_currency=${currency}`,
             url7 = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=7&vs_currency=${currency}`,
             url30 = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=30&vs_currency=${currency}`,
             url365 = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=365&vs_currency=${currency}`,
-            dayHistoryData: Promise<any> = await  makeCoingeckoRequest(url1),
-            weekHistoryData: Promise<any> =  await makeCoingeckoRequest(url7),
-            montHistoryData: Promise<any> =  await makeCoingeckoRequest(url30),
-            yearHistoryData: Promise<any> =  await makeCoingeckoRequest(url365);
+            dayHistoryData: Promise<any> = await makeCoingeckoRequest(url1),
+            weekHistoryData: Promise<any> = await makeCoingeckoRequest(url7),
+            montHistoryData: Promise<any> = await makeCoingeckoRequest(url30),
+            yearHistoryData: Promise<any> = await makeCoingeckoRequest(url365);
 
-        let currencyHistory = new CurrencyHistory ({
+        let currencyHistory = new CurrencyHistory({
             id: coin,
             coingeckoCode: coin,
             dayHistoryData: dayHistoryData,
@@ -105,7 +105,7 @@ export async function addNewCurrencyHistoryCoin(coin: string, currency: any): Pr
         await currencyHistory.save();
 
         return currencyHistory;
-    }  catch (err: any) {
+    } catch (err: any) {
         Logger.error('Fail database initial update');
         throw new Error(err);
     }
@@ -115,11 +115,12 @@ export async function makeCoingeckoRequest(url: string): Promise<any> {
     let pricesArray: any[] = [];
     try {
         await axios.get(url)
-            .then((response)=> {
+            .then((response) => {
                 let data = response.data;
-                if(data) {
+                if (data) {
                     pricesArray = data.prices
-                }})
+                }
+            })
     } catch (err: any) {
         new HttpException(400, err)
     }
@@ -129,7 +130,8 @@ export async function makeCoingeckoRequest(url: string): Promise<any> {
 export async function initailUpdateOfTheDatabase(coins: Array<string>): Promise<void> {
     for (const coin of coins) {
         try {
-          await addNewCurrencyHistoryCoin(coin, 'usd')
+            await new Promise(resolve => setTimeout(resolve, 5000))
+            await addNewCurrencyHistoryCoin(coin, 'usd')
         } catch (err: any) {
             Logger.error('Fail database initial update');
             throw new Error(err)
@@ -137,10 +139,10 @@ export async function initailUpdateOfTheDatabase(coins: Array<string>): Promise<
     }
 }
 
-export async function getCoinHistoryDataBasedOnDays(coinId: string, days: string): Promise<any>{
+export async function getCoinHistoryDataBasedOnDays(coinId: string, days: string): Promise<any> {
     let data;
-    await CurrencyHistory.find({id: coinId}).then((response: any)=> {
-        switch (days){
+    await CurrencyHistory.find({ id: coinId }).then((response: any) => {
+        switch (days) {
             case '1':
                 data = { prices: response[0].dayHistoryData };
                 break;
