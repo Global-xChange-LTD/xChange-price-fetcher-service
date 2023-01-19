@@ -19,6 +19,7 @@ export const currencyHistorySchema = new Schema ({
         },
         coingeckoCode: {
             type: String,
+            unique: true,
             required: true
         },
         dayHistoryData: {
