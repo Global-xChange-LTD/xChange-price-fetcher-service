@@ -22,5 +22,4 @@ app.listen(PORT, () => {
     Logger.info(`Server is running on PORT: ${PORT}`)
 });
 
-console.warn('call connectToDatabases')
 connectToDatabases()
