@@ -72,7 +72,6 @@ export async function updateCoinHistoryData(coinId: string, prices: any, keyForU
 
 export async function getCoingeckoCoinsIdsFromDB() {
     let tempArray: Array<string> = [];
-
     try {
         tempArray = await CurrencyHistory.distinct("id");
     } catch (err: any) {
@@ -128,9 +127,10 @@ export async function makeCoingeckoRequest(url: string): Promise<any> {
 }
 
 export async function initailUpdateOfTheDatabase(coins: Array<string>): Promise<void> {
+    console.warn('initailUpdateOfTheDatabase', coins)
     for (const coin of coins) {
         try {
-            await new Promise(resolve => setTimeout(resolve, 3000))
+            await new Promise(resolve => setTimeout(resolve, 1000))
             await addNewCurrencyHistoryCoin(coin, 'usd')
         } catch (err: any) {
             Logger.error('Fail database initial update');

@@ -19,6 +19,8 @@ export async function checkMarketAndHistoryDatabase() {
             }
         }
 
+        console.warn('currencyHistory',currencyHistory)
+
         if( currencyHistory && currencyHistory.length == 0 ) {
             let coinsEnumArr = await getCoinsCodeStringByValue();
 
