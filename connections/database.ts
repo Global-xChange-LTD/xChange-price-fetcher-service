@@ -9,7 +9,7 @@ export async function connectToDatabases() {
         dbName: DATABASE_NAME || 'xchange_price_fetcher'
     })
         .then((res) => {
-           Logger.info('database connected');
+           Logger.info('database connected',DATABASE_URL, DATABASE_NAME );
            checkMarketAndHistoryDatabase();
            updateCoinsData();
         })
