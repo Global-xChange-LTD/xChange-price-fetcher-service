@@ -6,7 +6,7 @@ dotenv.config();
 
 import router from "./routes/router";
 import { connectToDatabases } from "./connections/database";
-import { PORT } from "./config/config";
+import {DATABASE_NAME, DATABASE_URL, PORT} from "./config/config";
 import Logger from "./utils/logger";
 
 const app = express();
@@ -21,5 +21,8 @@ app.get('/', (req:any, res:any) => { return res.status(200).json({ message: 'suc
 app.listen(PORT, () => {
     Logger.info(`Server is running on PORT: ${PORT}`)
 });
+
+Logger.info('database connect to DATABASE_URL',DATABASE_URL);
+Logger.info('database connect to DATABASE_NAME', DATABASE_NAME);
 
 connectToDatabases()
