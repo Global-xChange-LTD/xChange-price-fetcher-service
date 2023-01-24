@@ -10,7 +10,6 @@ export const PORT = getEnvironmentVariable('PORT');
 export const DATABASE_URL = getEnvironmentVariable('DATABASE_URL');
 export const DATABASE_NAME = getEnvironmentVariable('DATABASE_NAME');
 export const COINGECKO_API_URL = getEnvironmentVariable('COINGECKO_API_URL');
-export const DATABASE_URL_STATIC = getEnvironmentVariable('DATABASE_URL_STATIC');
 
 const config = {
         development: {
