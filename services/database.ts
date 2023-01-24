@@ -9,8 +9,8 @@ export async function checkMarketAndHistoryDatabase() {
     try {
         let currencyMarket = await CurrencyMarket.find({}),
             currencyHistory = await CurrencyHistory.find({});
-        console.warn('currencyHistory',currencyHistory)
-        if(currencyMarket && currencyMarket.length == 0) {
+
+        if(currencyMarket && currencyMarket.length === 0) {
             let coinsArr = await getCoinsCodeStringByValue(),
                 data = await requestMarketsCoingeckoData(coinsArr);
 
@@ -19,7 +19,7 @@ export async function checkMarketAndHistoryDatabase() {
             }
         }
 
-        if( currencyHistory && currencyHistory.length == 0 ) {
+        if( currencyHistory && currencyHistory.length === 0 ) {
             let coinsEnumArr = await getCoinsCodeStringByValue();
 
             await initailUpdateOfTheDatabase(coinsEnumArr)
