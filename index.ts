@@ -19,7 +19,7 @@ app.use(router);
 app.get('/', (req:any, res:any) => { return res.status(200).json({ message: 'success' }) });
 
 app.listen(PORT, () => {
-    Logger.info(`Server is running on PORT: ${PORT}  with ${DATABASE_URL}`)
+    Logger.info(`Server is running on PORT: ${PORT}`)
 });
 
 connectToDatabases()

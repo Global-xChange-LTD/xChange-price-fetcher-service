@@ -7,7 +7,7 @@ export const updateCoinsData = () => {
     //At every 43 seconds.
     new CronJob('*/30 * * * * *', async () =>{
        await updateCurrencyMarketData()
-           .catch(err => Logger.error(`Failed to update minute currency market data: ${err}`));
+           .catch(err => Logger.error(`Failed to update second currency market data: ${err}`));
     }).start();
 
     //At every 43th minute.
