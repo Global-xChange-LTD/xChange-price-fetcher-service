@@ -5,32 +5,43 @@ import Logger from "./logger";
 
 export const updateCoinsData = () => {
     //At every 43 seconds.
-    new CronJob('*/30 * * * * *', async () =>{
-       await updateCurrencyMarketData()
-           .catch(err => Logger.error(`Failed to update second currency market data: ${err}`));
+    new CronJob('*/57 * * * * *', async () =>{
+        await updateCurrencyMarketData()
+            .catch(err => {
+                Logger.error(`When updating currency market on 57 seconds :, ${err}, 'message:' + ${err.message}`);
+            })
     }).start();
 
-    //At every 43th minute.
-    new CronJob('*/45 * * * *', async () =>{
+    //At every 10th minute past every hour.
+    new CronJob('*/10 */1 * * *', async () =>{
         await updateChartHistory(1)
-            .catch(err =>  Logger.error(`Failed to update day currency market data: ${err}`));
+            .catch(err => {
+                Logger.error(`Try axios GET 1 day data error: ${err}`);
+            });
+
     }).start();
 
-    //At minute 11 past every 2nd hour.
-    new CronJob('10 */2 * * * ', async () => {
+    //At minute 14 past every 2nd hour.
+    new CronJob('14 */2 * * * ', async () => {
         await updateChartHistory(7)
-            .catch(err =>  Logger.error(`Failed to update week market data: '${err.message}`));
+            .catch(err => {
+                Logger.error(`Try axios GET 7 day data error: ${err.message}`);
+            });
     }).start();
 
-    //At minute 31 past every 12th hour
-    new CronJob('30 */12 * * *', async () => {
+    //At minute 26 past every 12th hour
+    new CronJob('26 */12 * * *', async () => {
         await updateChartHistory(30)
-            .catch(err =>  Logger.error(`Failed to update month market data: '${err.message}`));
+            .catch(err => {
+                Logger.error(`Try axios GET 30 day data error: ${err.message}`);
+            });
     }).start();
 
-    //At minute 3 past every 24th hour.
-    new CronJob('15 */24 * * *', async () => {
+    //At minute 41 past every 24th hour.
+    new CronJob('41 */24 * * *', async () => {
         await updateChartHistory(365)
-            .catch(err =>  Logger.error(`Failed to update year market data: '${err.message}`));
+            .catch(err => {
+                Logger.error(`Try axios GET 365 day data error: ${err.message}`);
+            });
     }).start();
 }

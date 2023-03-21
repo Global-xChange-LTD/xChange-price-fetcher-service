@@ -12,7 +12,7 @@ export async function updateChartHistory(days: number) {
     if (coins) {
         try {
             for (let coin of coins) {
-                let url = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=${days}&vs_currency=usd`,
+                let url = `${COINGECKO_API_URL}coins/${coin}/market_chart?days=${days}&vs_currency=usd&per_page=400`,
                     prices: any = [];
 
                 url.replace('%27,', '');
@@ -126,15 +126,26 @@ export async function makeCoingeckoRequest(url: string): Promise<any> {
     return pricesArray;
 }
 
-export async function initailUpdateOfTheDatabase(coins: Array<string>): Promise<void> {
-    console.warn('initailUpdateOfTheDatabase', coins)
+export async function initailUpdateOfTheDatabase(coins: any): Promise<void> {
+
+    let coinsArrayInHistoryDB = await getCoingeckoCoinsIdsFromDB();
+
     for (const coin of coins) {
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            await addNewCurrencyHistoryCoin(coin, 'usd')
-        } catch (err: any) {
-            Logger.error('Fail database initial update');
-            throw new Error(err)
+        let coinExists = false;
+
+       if ( coinsArrayInHistoryDB?.includes(coin)) {
+           coinExists = true
+       }
+
+       if (!coinExists) {
+           try {
+               await new Promise(f => setTimeout(f, 5000));
+               await addNewCurrencyHistoryCoin(coin, 'usd')
+
+           } catch (err: any) {
+               Logger.error('Fail database initial update');
+               throw new Error(err)
+           }
         }
     }
 }

@@ -4,8 +4,9 @@ import HttpException from "../classes/HttpException";
 import {
     addNewCurrencyHistoryCoin,
     getCoingeckoCoinsIdsFromDB,
-    getCoinHistoryDataBasedOnDays
+    getCoinHistoryDataBasedOnDays, makeCoingeckoRequest, updateCoinHistoryData
 } from "../services/coins.history.service";
+import {COINGECKO_API_URL} from "../config/config";
 
 export async function getCoinHystoryData(
     req: express.Request,
@@ -35,7 +36,38 @@ export async function getCoinHystoryData(
             // @ts-ignore
             await getCoinHistoryDataBasedOnDays(coinId, days.toString())
                 .then((resp)=> {
-                    return res.status(200).json(resp);
+                    if(resp.prices.length === 0) {
+                        const url = `${COINGECKO_API_URL}${coinId}/market_chart?days=${days!.toString()}&vs_currency=${vs_currency}`;
+                        makeCoingeckoRequest(url).then((response) => {
+                            let result = resp;
+
+                            if(response.length > 0) {
+                                let keyForUpdate: string = '';
+                                result = response;
+
+                                switch (days) {
+                                    case '1':
+                                        keyForUpdate = 'dayHistoryData'
+                                        break;
+                                    case '7':
+                                        keyForUpdate = 'weekHistoryData';
+                                        break;
+                                    case '30':
+                                        keyForUpdate = 'monthHistoryData';
+                                        break;
+                                    case '365':
+                                        keyForUpdate = 'yearHistoryData';
+                                        break;
+                                }
+
+                                updateCoinHistoryData(coinId,result, keyForUpdate)
+                            }
+
+                            return res.status(200).json({prices: result});
+                        });
+                    } else {
+                        return res.status(200).json(resp);
+                    }
                 });
         } else {
             let newRecord = await addNewCurrencyHistoryCoin(coinId, vs_currency)

@@ -15,14 +15,19 @@ export async function getCoinsMarketsData(
 ){
     const query = req.query;
 
-    if (!query['ids'] || !query['vs_currency']) {
-        Logger.error('Missing one of params: `coin ids, `vs_currency`');
-        next(new HttpException(400, 'Missing one of params: `coin ids, `vs_currency'));
+    if (!query['ids']) {
+        Logger.error('Missing param: `coin ids');
+        next(new HttpException(400, 'Missing param: `coin ids'));
+    }
+
+    if (!query['vs_currency']) {
+        Logger.error('Missing param: `vs_currency');
+        next(new HttpException(400, 'Missing param: `coin ids'));
     }
 
     let idsFromQueary = query['ids'],
         // @ts-ignore
-        vs_currency = query['vs_currency'].toString();
+        vs_currency = query['vs_currency'] ?  query['vs_currency'].toString() : 'usd';
 
 
     if(idsFromQueary) {
@@ -32,7 +37,13 @@ export async function getCoinsMarketsData(
                 coinsfromDB = await getMarketCoinGeckosIds(),
                 missingCoinArr: string[] = [];
 
-            for (const item of idsArrayFromQueary) {
+            const trimArray = idsArrayFromQueary.map((coin: string) => {
+                return coin.trim();
+            });
+
+            let uniqueCoinsFromQueary = [...new Set(trimArray)];
+
+            for (const item of uniqueCoinsFromQueary) {
                 if(coinsfromDB && !coinsfromDB.includes(item)){
                     missingCoinArr.push(item)
                 }
@@ -49,7 +60,7 @@ export async function getCoinsMarketsData(
                 }
             }
 
-            const records = await CurrencyMarket.find({exchange_rate: vs_currency}).where('id').in(idsArrayFromQueary).exec();
+            const records = await CurrencyMarket.find({exchange_rate: vs_currency}).where('id').in(uniqueCoinsFromQueary).exec();
 
             res.status(200).json(records);
         } catch (err: any) {
