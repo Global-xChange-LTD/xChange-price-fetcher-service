@@ -103,7 +103,6 @@ export async function updateCurrencyMarketData(){
                     };
 
                     await CurrencyMarket.findOneAndUpdate({id: item.id, exchange_rate: item.exchange_rate}, record, {
-                        new: true,
                         upsert: true
                     }).catch((err: any) => {
                         Logger.error(`CurrencyMarket findOneAndUpdate: ${ err}`);
